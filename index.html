@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineTrailer - Watch HD Trailers & Shows</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #0b0f19;
+      color: #f3f4f6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    header {
+      background: rgba(17, 24, 39, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid #1f2937;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #e11d48;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: #1f2937;
+      border-radius: 8px;
+      padding: 4px 10px;
+      border: 1px solid #374151;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: white;
+      padding: 8px;
+      width: 100%;
+      font-size: 0.95rem;
+    }
+
+    .search-box button {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: color 0.2s;
+    }
+
+    .search-box button:hover {
+      color: #e11d48;
+    }
+
+    /* Container & Filter Navigation */
+    .container {
+      max-width: 1300px;
+      margin: 1.5rem auto;
+      padding: 0 1.5rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      background: #1f2937;
+      color: #9ca3af;
+      border: 1px solid #374151;
+      padding: 8px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: #e11d48;
+      color: white;
+      border-color: #e11d48;
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Movie Grid Layout */
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: #111827;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #1f2937;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 25px -4px rgba(225, 29, 72, 0.25);
+      border-color: #e11d48;
+    }
+
+    .poster-box {
+      position: relative;
+      width: 100%;
+      height: 280px;
+      overflow: hidden;
+      background: #1f2937;
+    }
+
+    .poster-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover .poster-box img {
+      transform: scale(1.05);
+    }
+
+    .play-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .play-overlay i {
+      font-size: 3rem;
+      color: #e11d48;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      padding: 10px;
+    }
+
+    .card:hover .play-overlay {
+      opacity: 1;
+    }
+
+    .card-meta {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+
+    .card-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .rating {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    .badge {
+      background: #374151;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    /* HD Trailer Video Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: #111827;
+      width: 100%;
+      max-width: 850px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #374151;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+
+    .modal-header {
+      padding: 12px 18px;
+      background: #1f2937;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f3f4f6;
+    }
+
+    .close-btn {
+      background: #e11d48;
+      border: none;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .close-btn:hover {
+      background: #be123c;
+    }
+
+    .player-ratio {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+      height: 0;
+      background: #000;
+    }
+
+    .player-ratio iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+      color: #6b7280;
+      border-top: 1px solid #1f2937;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand" onclick="loadContent('trending')">
+      <i class="fa-solid fa-clapperboard"></i> CineTrailer
+    </div>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search title, Marvel, Anime...">
+      <button onclick="searchContent()"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+  </header>
+
+  <!-- Content Container -->
+  <div class="container">
+    
+    <!-- Filter Category Tabs -->
+    <div class="filter-tabs">
+      <button class="tab-btn active" onclick="loadContent('trending', this)">🔥 Trending</button>
+      <button class="tab-btn" onclick="loadContent('popular_movies', this)">🎬 Popular Movies</button>
+      <button class="tab-btn" onclick="loadContent('top_rated', this)">⭐ Top Rated</button>
+      <button class="tab-btn" onclick="loadContent('tv_series', this)">📺 TV Series</button>
+    </div>
+
+    <div class="section-title" id="pageTitle">
+      <i class="fa-solid fa-fire text-red"></i> Trending This Week
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="movie-grid" id="movieGrid"></div>
+  </div>
+
+  <!-- Trailer Player Modal -->
+  <div class="modal" id="videoModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span class="modal-title" id="modalHeading">Playing Trailer</span>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="player-ratio">
+        <iframe id="trailerPlayer" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Powered by TMDB API. Practice Movie Hub Project on GitHub Pages.</p>
+  </footer>
+
+  <script>
+    const API_KEY = '8265bd1679663a7ea12ac168da84d2e8'; // TMDB Public Key
+    const grid = document.getElementById('movieGrid');
+    const modal = document.getElementById('videoModal');
+    const player = document.getElementById('trailerPlayer');
+    const modalHeading = document.getElementById('modalHeading');
+    const searchInput = document.getElementById('searchInput');
+
+    // Enter key support for search
+    searchInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') searchContent();
+    });
+
+    async function loadContent(category, element = null) {
+      if (element) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        element.classList.add('active');
+      }
+
+      let url = `https://api.themoviedb.org/3/trending/all/day?api_key=${API_KEY}`;
+      let title = '🔥 Trending This Week';
+
+      if (category === 'popular_movies') {
+        url = `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}`;
+        title = '🎬 Popular Movies';
+      } else if (category === 'top_rated') {
+        url = `https://api.themoviedb.org/3/movie/top_rated?api_key=${API_KEY}`;
+        title = '⭐ Highest Rated Movies';
+      } else if (category === 'tv_series') {
+        url = `https://api.themoviedb.org/3/tv/popular?api_key=${API_KEY}`;
+        title = '📺 Popular TV Series';
+      }
+
+      document.getElementById('pageTitle').innerHTML = title;
+      fetchAndRender(url);
+    }
+
+    async function fetchAndRender(url) {
+      grid.innerHTML = '<p style="color:#9ca3af;">Loading content...</p>';
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        renderGrid(data.results || []);
+      } catch (err) {
+        grid.innerHTML = '<p style="color:#ef4444;">Failed to load data. Please refresh.</p>';
+      }
+    }
+
+    function renderGrid(items) {
+      grid.innerHTML = '';
+      if (items.length === 0) {
+        grid.innerHTML = '<p style="color:#9ca3af;">No movies or series found.</p>';
+        return;
+      }
+
+      items.forEach(item => {
+        if (!item.poster_path) return;
+        const isMovie = item.title ? true : false;
+        const name = isMovie ? item.title : item.name;
+        const type = isMovie ? 'movie' : 'tv';
+        const poster = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
+        const rating = item.vote_average ? item.vote_average.toFixed(1) : 'NR';
+        const year = (item.release_date || item.first_air_date || '').substring(0, 4) || 'N/A';
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => openTrailer(item.id, type, name);
+        card.innerHTML = `
+          <div class="poster-box">
+            <img src="${poster}" alt="${name}" loading="lazy">
+            <div class="play-overlay">
+              <i class="fa-solid fa-play"></i>
+            </div>
+          </div>
+          <div class="card-meta">
+            <div class="card-title">${name}</div>
+            <div class="card-details">
+              <span class="rating">★ ${rating}</span>
+              <span>${year}</span>
+              <span class="badge">${type}</span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function openTrailer(id, type, title) {
+      try {
+        const res = await fetch(`https://api.themoviedb.org/3/${type}/${id}/videos?api_key=${API_KEY}`);
+        const data = await res.json();
+        const trailer = data.results.find(v => v.site === 'YouTube' && (v.type === 'Trailer' || v.type === 'Teaser')) || data.results[0];
+
+        if (trailer) {
+          modalHeading.innerText = `${title} - Official Trailer`;
+          player.src = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
+          modal.style.display = 'flex';
+        } else {
+          alert('Trailer currently unavailable for this title.');
+        }
+      } catch (e) {
+        alert('Could not load trailer at this moment.');
+      }
+    }
+
+    function closeModal() {
+      modal.style.display = 'none';
+      player.src = '';
+    }
+
+    // Modal close when clicking outside container
+    window.onclick = function(e) {
+      if (e.target === modal) closeModal();
+    };
+
+    async function searchContent() {
+      const q = searchInput.value.trim();
+      if (!q) return;
+      document.getElementById('pageTitle').innerHTML = `🔍 Search results for: "${q}"`;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const url = `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(q)}`;
+      fetchAndRender(url);
+    }
+
+    // Default load
+    loadContent('trending');
+  </script>
+</body>
+</html>
